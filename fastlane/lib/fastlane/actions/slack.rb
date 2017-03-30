@@ -28,6 +28,7 @@ module Fastlane
 
         notifier.username = options[:use_webhook_configured_username_and_icon] ? nil : options[:username]
         icon_url = options[:use_webhook_configured_username_and_icon] ? nil : options[:icon_url]
+        icon_emoji = options[:use_webhook_configured_username_and_icon] ? nil : options[:icon_emoji]
 
         if options[:channel].to_s.length > 0
           notifier.channel = options[:channel]
@@ -39,6 +40,7 @@ module Fastlane
         return [notifier, slack_attachment] if Helper.is_test? # tests will verify the slack attachments and other properties
 
         result = notifier.ping '',
+                               icon_emoji: icon_emoji,
                                icon_url: icon_url,
                                attachments: [slack_attachment]
 
@@ -79,14 +81,19 @@ module Fastlane
                                        end),
           FastlaneCore::ConfigItem.new(key: :username,
                                        env_name: "FL_SLACK_USERNAME",
-                                       description: "Overrides the webook's username property if use_webhook_configured_username_and_icon is false",
+                                       description: "Overrides the webhook's username property if use_webhook_configured_username_and_icon is false",
                                        default_value: "fastlane",
                                        is_string: true,
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :icon_url,
                                        env_name: "FL_SLACK_ICON_URL",
-                                       description: "Overrides the webook's image property if use_webhook_configured_username_and_icon is false",
+                                       description: "Overrides the webhook's image property if use_webhook_configured_username_and_icon is false",
                                        default_value: "https://s3-eu-west-1.amazonaws.com/fastlane.tools/fastlane.png",
+                                       is_string: true,
+                                       optional: true),
+          FastlaneCore::ConfigItem.new(key: :icon_emoji,
+                                       env_name: "FL_SLACK_ICON_EMOJI",
+                                       description: "Overrides the webhook's icon_emoji property if use_webhook_configured_username_and_icon is false",
                                        is_string: true,
                                        optional: true),
           FastlaneCore::ConfigItem.new(key: :payload,
