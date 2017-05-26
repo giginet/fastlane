@@ -32,6 +32,8 @@ module Fastlane
         enableThreadSanitizer: "-enableThreadSanitizer",
         enableCodeCoverage: "-enableCodeCoverage",
         export_archive: "-exportArchive",
+        # exportFormat option have been removed from Xcode 8.3
+        # It remains for backward compatibility
         export_format: "-exportFormat",
         export_installer_identity: "-exportInstallerIdentity",
         export_options_plist: "-exportOptionsPlist",
@@ -123,11 +125,15 @@ module Fastlane
               params[:export_path] = "#{build_path}#{ipa_filename}"
             end
 
-            # Default to ipa as export format
-            export_format = params[:export_format] || "ipa"
-
+            if params[:export_options_plist]
+              ipa_filename = scheme ? scheme : File.basename(params[:archive_path], ".*").split.first
+              output_path = File.join(params[:export_path], "#{ipa_filename}.ipa")
+            else
+              export_format = params[:export_format] || "ipa"
+              output_path = params[:export_path] + "." + export_format.downcase
+            end
             # Store IPA path for later deploy steps (i.e. Crashlytics)
-            Actions.lane_context[SharedValues::IPA_OUTPUT_PATH] = params[:export_path] + "." + export_format.downcase
+            Actions.lane_context[SharedValues::IPA_OUTPUT_PATH] = output_path
           else
             # If not passed, check for archive scheme & workspace/project env vars
             params[:scheme] ||= scheme
