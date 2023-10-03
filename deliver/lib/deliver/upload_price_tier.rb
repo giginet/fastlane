@@ -21,7 +21,7 @@ module Deliver
       # Need to get prices from the app's relationships
       # Prices from app's relationship doess not have price tier so need to fetch app price with price tier relationship
       app_prices = app.prices
-      if app_prices.first
+      if app_prices&.first
         app_price = Spaceship::ConnectAPI.get_app_price(app_price_id: app_prices.first.id, includes: "priceTier").first
         old_price = app_price.price_tier.id
       else
@@ -29,12 +29,16 @@ module Deliver
         territory_ids = Spaceship::ConnectAPI::Territory.all.map(&:id)
         attributes[:availableInNewTerritories] = true
       end
-
-      if price_tier == old_price
-        UI.success("Price Tier unchanged (tier #{old_price})")
-        return
+      
+      begin
+        if price_tier == old_price
+          UI.success("Price Tier unchanged (tier #{old_price})")
+          return
+        end
+      rescue => exc
+        puts exc.to_s
+        old_price = 'none'
       end
-
       app.update(attributes: attributes, app_price_tier_id: price_tier, territory_ids: territory_ids)
       UI.success("Successfully updated the pricing from #{old_price} to #{price_tier}")
     end
